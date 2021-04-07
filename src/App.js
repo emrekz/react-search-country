@@ -49,22 +49,9 @@ function App() {
     //console.log(result);
   }, [filterState])
   
-  let k;
   let counter = 0;
   let result = [];
-  const handleSearch = (e) => {
-    //console.log(e.target.value);
-    searchResults.forEach((i) => {
-      for(k in i){
-        if(i[k] === e.target.value){
-          result.push(i);
-        }
-      }
-    });
-    //console.log(result);
-  };
-
-
+  
   const searchFilter = (e) => {
     result = [];
     if(filterState !== 'all'){
@@ -134,18 +121,6 @@ function App() {
       
     }
   }
-
-  const objectScanner = (t,v) => {
-    Object.values(t).forEach((i) => {
-      if((typeof i === 'string' || typeof i === 'number') && i !== null && i !== undefined){
-        result.map((f) =>  {
-          if(f.name !== t.name){
-            result.push(t)
-          }
-        })  
-      }
-    });
-  };
 
   const handleSelectFilter = (e) => {
     counter = 0;
@@ -236,16 +211,16 @@ function App() {
                                     <p>alpha3Code : {i.alpha3Code}</p>
                                     <p>capital : {i.capital}</p>
                                     <p>area : {i.area}</p>
-                                    <p>borders : { i.borders.map(j => <> {j}, </>)} </p>
-                                    <p>altSpellings : { i.altSpellings.map(j => <> {j}, </>)} </p> 
-                                    <p>callingCodes : { i.callingCodes.map(j => <> {j}, </>)} </p>   
+                                    <p>borders : { i.borders.map(j => <Fragment key={j}> {j}, </Fragment>)} </p>
+                                    <p>altSpellings : { i.altSpellings.map(j => <Fragment key={j}> {j}, </Fragment>)} </p> 
+                                    <p>callingCodes : { i.callingCodes.map(j => <Fragment key={j}> {j}, </Fragment>)} </p>   
                                     <p>cioc : {i.cioc} </p>   
                                     <p>demonym : {i.demonym} </p>
                                   </Col>
                                   <Col xs={6} style={{textAlign:'left'}}>
                                     <p>subregion : {i.subregion} </p>
-                                    <p>timezones : { i.timezones.map(j => <> {j}, </>)} </p>
-                                    <p>topLevelDomain : { i.topLevelDomain.map(j => <> {j}, </>)} </p> 
+                                    <p>timezones : { i.timezones.map(j => <Fragment key={j}> {j}, </Fragment>)} </p>
+                                    <p>topLevelDomain : { i.topLevelDomain.map(j => <Fragment key={j}> {j}, </Fragment>)} </p> 
                                     <p>population : {i.population} </p> 
                                     <p>nativeName : {i.nativeName} </p>  
                                     <p>gini : {i.gini} </p>
