@@ -23,15 +23,14 @@ function App() {
   const [filterState, setFilterState] = useState('all');
   const [searchResults, setSearchResults] = useState([]);
   const [numberSearchResults, setNumberSearchResult] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     axios.get('https://restcountries.eu/rest/v2/all')
       .then(response => {
         setJsonData(response.data);
-        //let tt = response.data;
-        //tt['details'] = [];
         setSearchResults(response.data);
-        //console.log(response.data)
+        console.log(response.data)
       });
   }, []);
 
@@ -53,6 +52,7 @@ function App() {
   let result = [];
   
   const searchFilter = (e) => {
+    setSearchTerm(e.target.value);
     result = [];
     if(filterState !== 'all'){
       jsonData.forEach((i) => {
@@ -137,18 +137,18 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <Container>
+        <Container style={{minHeight:'1000px', marginTop:'20px'}}>
           <Row className="justify-content-md-center">
             <Col></Col>
             <Col xs="10">
-              <Alert variant="danger" dismissible>
+              <Alert variant="info" >
                 Number of Results : {numberSearchResults}
               </Alert>
               <Row className="justify-content-md-center">
                 <Col xs="10">
                   <InputGroup className="mb-3">
                     <InputGroup.Prepend>
-                      <InputGroup.Text id="searchInput">{searchName}</InputGroup.Text>
+                      <InputGroup.Text id="searchInput" style={{fontWeight:'bold'}}>{searchName}</InputGroup.Text>
                     </InputGroup.Prepend>
                     <FormControl
                       aria-label="Default"
@@ -205,6 +205,11 @@ function App() {
                                 )
                               })} */}
                               <Container>
+                                <Row style={{marginBottom:'50px'}}>
+                                  <Col style={{textAlign: 'left', color:'yellow', fontWeight:'normal'}}>
+                                    *keys which include to search term of '{searchTerm}'  : { i.details !== undefined ? <>{Object.values(i.details).map((x,n) => <span key={x+n} style={{color:'cyan'}}>{x}, </span> )}</> : ''} 
+                                  </Col>
+                                </Row>
                                 <Row>
                                   <Col xs={6} style={{textAlign:'left'}}>
                                     <p>alpha2Code : {i.alpha2Code}</p>
@@ -225,6 +230,10 @@ function App() {
                                     <p>nativeName : {i.nativeName} </p>  
                                     <p>gini : {i.gini} </p>
                                     <p>latlng : {i.latlng} </p>
+                                    <p>currencies : { i.currencies.map((j,n) => <Fragment key={n}> {j.code}, </Fragment>)} </p> 
+
+
+
                                   </Col>
                                 </Row>
                               </Container>
