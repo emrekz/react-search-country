@@ -1,6 +1,7 @@
 import React, { Fragment } from "react";
 import './App.css';
 import axios from 'axios';
+import logo from './logo.png'
 import {useState, useEffect} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -30,7 +31,7 @@ function App() {
       .then(response => {
         setJsonData(response.data);
         setSearchResults(response.data);
-        console.log(response.data)
+        //console.log(response.data)
       });
   }, []);
 
@@ -137,7 +138,11 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <Container style={{minHeight:'1000px', marginTop:'20px'}}>
+        <Container style={{minHeight:'1000px', marginTop:'10px'}}>
+          <Row>
+            <Col xs="5"><img src={logo} style={{height:'55%', width:'auto'}}/></Col>
+            <Col xs="7"></Col>
+          </Row>
           <Row className="justify-content-md-center">
             <Col></Col>
             <Col xs="10">
@@ -221,6 +226,8 @@ function App() {
                                     <p>callingCodes : { i.callingCodes.map(j => <Fragment key={j}> {j}, </Fragment>)} </p>   
                                     <p>cioc : {i.cioc} </p>   
                                     <p>demonym : {i.demonym} </p>
+                                    <p>languages : { i.languages.map((j,n) => <Fragment key={n}> {j.name}, </Fragment>)} </p> 
+
                                   </Col>
                                   <Col xs={6} style={{textAlign:'left'}}>
                                     <p>subregion : {i.subregion} </p>
@@ -231,7 +238,7 @@ function App() {
                                     <p>gini : {i.gini} </p>
                                     <p>latlng : {i.latlng} </p>
                                     <p>currencies : { i.currencies.map((j,n) => <Fragment key={n}> {j.code}, </Fragment>)} </p> 
-
+                                    <p>latlng : { i.latlng.map((j,n) => <Fragment key={n}> {j}, </Fragment>)} </p> 
 
 
                                   </Col>
