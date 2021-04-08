@@ -13,7 +13,8 @@ import { Button,
   InputGroup,
   FormControl,
   Dropdown,
-  Alert
+  Alert,
+  Spinner
 } from 'react-bootstrap';
 
 
@@ -23,15 +24,16 @@ function App() {
   const [filterName, setFilterName] = useState('Filter');
   const [filterState, setFilterState] = useState('all');
   const [searchResults, setSearchResults] = useState([]);
-  const [numberSearchResults, setNumberSearchResult] = useState('');
+  const [numberSearchResult, setNumberSearchResult] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchStatus, setSearchStatus] = useState(false);
 
   useEffect(() => {
     axios.get('https://restcountries.eu/rest/v2/all')
       .then(response => {
         setJsonData(response.data);
         setSearchResults(response.data);
-        //console.log(response.data)
+        setNumberSearchResult(response.data.length);
       });
   }, []);
 
@@ -46,65 +48,69 @@ function App() {
     }
     setSearchResults(result);
     setNumberSearchResult(result.length);
-    //console.log(result);
   }, [filterState])
-  
+
+
   let counter = 0;
   let result = [];
   
   const searchFilter = (e) => {
+    setSearchStatus(true);
     setSearchTerm(e.target.value);
     result = [];
     if(filterState !== 'all'){
       jsonData.forEach((i) => {
         if(i[filterState].indexOf(e.target.value) !== -1){
           result.push(i);
-        }
+          setSearchStatus(false);
+        }else{setSearchStatus(false);}
       });
     } else {
       jsonData.forEach((x,tm,arr) => {
+        setTimeout(() => {
           x['details'] = [];
           myArr = [];
           Object.keys(x).forEach((f1) => {
             ((typeof x[f1] === 'string' || typeof x[f1] === 'number' || x[f1] === null  || x[f1] === undefined)) ?
-              resultPush(String(x[f1]),String(e.target.value),x,String(f1)) :
+              resultPush(String(x[f1]),String(e.target.value),x,String(f1),tm) :
               Object.keys(x[f1]).forEach((f2) => {
                 ((typeof x[f1][f2] === 'string' || typeof x[f1][f2] === 'number' || x[f1][f2] === null  || x[f1][f2] === undefined)) ?
-                  resultPush(String(x[f1][f2]),String(e.target.value),x,String(f1)) :
+                  resultPush(String(x[f1][f2]),String(e.target.value),x,String(f1),tm) :
                   Object.keys(x[f1][f2]).forEach((f3) => {
                     ((typeof x[f1][f2][f3] === 'string' || typeof x[f1][f2][f3] === 'number' || x[f1][f2][f3] === null  || x[f1][f2][f3] === undefined)) ?
                       //console.log('key: '+f1+'>'+f2+'>'+f3+' , value: '+ x[f1][f2][f3]) :
-                      resultPush(String(x[f1][f2][f3]),String(e.target.value),x,String(f1)) :
+                      resultPush(String(x[f1][f2][f3]),String(e.target.value),x,String(f1),tm) :
                       Object.keys(x[f1][f2][f3]).forEach((f4) => {
                         ((typeof x[f1][f2][f3][f4] === 'string' || typeof x[f1][f2][f3][f4] === 'number' || x[f1][f2][f3][f4] === null  || x[f1][f2][f3][f4] === undefined)) ?
-                        resultPush(String(x[f1][f2][f3][f4]),String(e.target.value),x,String(f1)) : console.log('I am lost')
+                        resultPush(String(x[f1][f2][f3][f4]),String(e.target.value),x,String(f1),tm) : console.log('I am lost')
                     })
                   })
               })
           })
           counter++;
           if(counter === arr.length){
-            console.log('done');
             setSearchResults(result);
             setNumberSearchResult(result.length);
-            //console.log(result)
+            counter = 0; 
+            setSearchStatus(false);
           }
           if(myArr.length > -1){
-            //console.log(myArr);
             x['details'] = myArr;
           }
-        })
+        
+        }, 1)
+      })
     }
-    counter = 0;  
     setSearchResults(result);
     setNumberSearchResult(result.length);
-    
   };
   
   let myArr = [];
-  const resultPush = (m,e,x,ff) => {
+  let myObj;
+  const resultPush = (m,e,x,ff,tm) => {
     if(m.indexOf(e) !== -1){
-      myArr.push(String(ff));
+      myObj = x.name + ' > ' + ff + ' > ' + m;
+      myArr.push(myObj);
       if(result.length < 1){
         result.push(x);
       }else {
@@ -113,9 +119,7 @@ function App() {
             break;
           }
           if(c === result.length-1){
-            //x['details'].push(myArr);
             result.push(x);
-            //console.log(result)
           }
         }
       }
@@ -125,10 +129,11 @@ function App() {
 
   const handleSelectFilter = (e) => {
     counter = 0;
-    console.log('timer cleared');
-    setFilterName(e.target.innerText);
-    setSearchName(e.target.innerText);
-    setFilterState(e.target.innerText.toLowerCase());
+    if(e.target.innerText !== filterName){
+      setFilterName(e.target.innerText);
+      setSearchName(e.target.innerText);
+      setFilterState(e.target.innerText.toLowerCase());
+    }
   };
 
   const detail = (e) => {
@@ -139,7 +144,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Container style={{minHeight:'1000px', marginTop:'10px'}}>
-          <Row>
+          <Row style={{marginBottom: '-5%'}}>
             <Col xs="5"><img src={logo} style={{height:'55%', width:'auto'}}/></Col>
             <Col xs="7"></Col>
           </Row>
@@ -147,7 +152,7 @@ function App() {
             <Col></Col>
             <Col xs="10">
               <Alert variant="info" >
-                Number of Results : {numberSearchResults}
+                { searchStatus === false ? <>Number of Results : {numberSearchResult}</> : <span style={{fontSize:'25px'}}><Spinner animation="border" variant="primary"></Spinner> Searching...</span> }
               </Alert>
               <Row className="justify-content-md-center">
                 <Col xs="10">
@@ -156,6 +161,7 @@ function App() {
                       <InputGroup.Text id="searchInput" style={{fontWeight:'bold'}}>{searchName}</InputGroup.Text>
                     </InputGroup.Prepend>
                     <FormControl
+                      placeholder="Search..."
                       aria-label="Default"
                       aria-describedby="inputGroup-sizing-default"
                       onChange ={(e) => searchFilter(e)}
@@ -189,7 +195,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {searchResults.map(i=>{
+                  {searchResults.map((i) =>{
                     return(
                       <Fragment key={i.name}>
                         <tr key={i.numericCode} onClick={(e) => detail(e)}>
@@ -203,44 +209,37 @@ function App() {
                         </tr>
                         <tr className="collapse">
                           <td colSpan="12">
-                              {/* { testArray.map(j => {
-                                return(
-                                  // i[j].length > 10 ? <p>{i[j]}</p> : <p></p>
-                                  <p>{j}</p>
-                                )
-                              })} */}
                               <Container>
-                                <Row style={{marginBottom:'50px'}}>
-                                  <Col style={{textAlign: 'left', color:'yellow', fontWeight:'normal'}}>
-                                    *keys which include to search term of '{searchTerm}'  : { i.details !== undefined ? <>{Object.values(i.details).map((x,n) => <span key={x+n} style={{color:'cyan'}}>{x}, </span> )}</> : ''} 
+                              {filterState === 'all' && i.details !== undefined ?
+                                <Row style={{marginBottom:'30px'}}>
+                                  <Col style={{textAlign: 'left', color:'yellow', fontWeight:'normal'}}>                                    
+                                      <>Search results related to '{searchTerm}' : {Object.values(i.details).map((x,n) => <span key={x+n} style={{color:'cyan',display:'list-item',marginLeft: '2%', fontSize:'15px'}}>{x} </span> )}</>
                                   </Col>
                                 </Row>
-                                <Row>
-                                  <Col xs={6} style={{textAlign:'left'}}>
-                                    <p>alpha2Code : {i.alpha2Code}</p>
-                                    <p>alpha3Code : {i.alpha3Code}</p>
-                                    <p>capital : {i.capital}</p>
-                                    <p>area : {i.area}</p>
-                                    <p>borders : { i.borders.map(j => <Fragment key={j}> {j}, </Fragment>)} </p>
-                                    <p>altSpellings : { i.altSpellings.map(j => <Fragment key={j}> {j}, </Fragment>)} </p> 
-                                    <p>callingCodes : { i.callingCodes.map(j => <Fragment key={j}> {j}, </Fragment>)} </p>   
-                                    <p>cioc : {i.cioc} </p>   
-                                    <p>demonym : {i.demonym} </p>
-                                    <p>languages : { i.languages.map((j,n) => <Fragment key={n}> {j.name}, </Fragment>)} </p> 
-
+                              : '' }
+                                <Row style={{fontSize:'13px'}}>
+                                  <Col xs={6} style={{textAlign:'left', display:'grid'}}>
+                                    <li>alpha2Code : {i.alpha2Code}</li>
+                                    <li>alpha3Code : {i.alpha3Code}</li>
+                                    <li>capital : {i.capital}</li>
+                                    <li>area : {i.area}</li>
+                                    <li>borders : { i.borders.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
+                                    <li>altSpellings : { i.altSpellings.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
+                                    <li>callingCodes : { i.callingCodes.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>   
+                                    <li>cioc : {i.cioc} </li>   
+                                    <li>demonym : {i.demonym} </li>
+                                    <li>languages : { i.languages.map((j,n) => <Fragment key={n}> {j.name}, </Fragment>)} </li> 
                                   </Col>
-                                  <Col xs={6} style={{textAlign:'left'}}>
-                                    <p>subregion : {i.subregion} </p>
-                                    <p>timezones : { i.timezones.map(j => <Fragment key={j}> {j}, </Fragment>)} </p>
-                                    <p>topLevelDomain : { i.topLevelDomain.map(j => <Fragment key={j}> {j}, </Fragment>)} </p> 
-                                    <p>population : {i.population} </p> 
-                                    <p>nativeName : {i.nativeName} </p>  
-                                    <p>gini : {i.gini} </p>
-                                    <p>latlng : {i.latlng} </p>
-                                    <p>currencies : { i.currencies.map((j,n) => <Fragment key={n}> {j.code}, </Fragment>)} </p> 
-                                    <p>latlng : { i.latlng.map((j,n) => <Fragment key={n}> {j}, </Fragment>)} </p> 
-
-
+                                  <Col xs={6} style={{textAlign:'left', display:'grid'}}>
+                                    <li>subregion : {i.subregion} </li>
+                                    <li>timezones : { i.timezones.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
+                                    <li>topLevelDomain : { i.topLevelDomain.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
+                                    <li>population : {i.population} </li> 
+                                    <li>nativeName : {i.nativeName} </li>  
+                                    <li>gini : {i.gini} </li>
+                                    <li>latlng : {i.latlng} </li>
+                                    <li>currencies : { i.currencies.map((j,n) => <Fragment key={n}> {j.code}, </Fragment>)} </li> 
+                                    <li>latlng : { i.latlng.map((j,n) => <Fragment key={n}> {j}, </Fragment>)} </li> 
                                   </Col>
                                 </Row>
                               </Container>
