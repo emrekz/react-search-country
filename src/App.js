@@ -29,11 +29,13 @@ function App() {
   const [searchStatus, setSearchStatus] = useState(false);
 
   useEffect(() => {
+    setSearchStatus(true);
     axios.get('https://restcountries.eu/rest/v2/all')
       .then(response => {
         setJsonData(response.data);
         setSearchResults(response.data);
         setNumberSearchResult(response.data.length);
+        setSearchStatus(false);
       });
   }, []);
 
@@ -213,33 +215,36 @@ function App() {
                               {filterState === 'all' && i.details !== undefined ?
                                 <Row style={{marginBottom:'30px'}}>
                                   <Col style={{textAlign: 'left', color:'yellow', fontWeight:'normal'}}>                                    
-                                      <>Search results related to '{searchTerm}' : {Object.values(i.details).map((x,n) => <span key={x+n} style={{color:'cyan',display:'list-item',marginLeft: '2%', fontSize:'15px'}}>{x} </span> )}</>
+                                      <>Search results related to <b>'{searchTerm}'</b> : {Object.values(i.details).map((x,n) => <span key={x+n} style={{color:'cyan',display:'list-item',marginLeft: '2%', fontSize:'13px'}}>{x} </span> )}</>
                                   </Col>
                                 </Row>
                               : '' }
                                 <Row style={{fontSize:'13px'}}>
                                   <Col xs={6} style={{textAlign:'left', display:'grid'}}>
-                                    <li>alpha2Code : {i.alpha2Code}</li>
-                                    <li>alpha3Code : {i.alpha3Code}</li>
-                                    <li>capital : {i.capital}</li>
-                                    <li>area : {i.area}</li>
-                                    <li>borders : { i.borders.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
-                                    <li>altSpellings : { i.altSpellings.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
-                                    <li>callingCodes : { i.callingCodes.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>   
-                                    <li>cioc : {i.cioc} </li>   
-                                    <li>demonym : {i.demonym} </li>
-                                    <li>languages : { i.languages.map((j,n) => <Fragment key={n}> {j.name}, </Fragment>)} </li> 
+                                    <li><b>alpha2Code : </b>{i.alpha2Code}</li>
+                                    <li><b>alpha3Code : </b>{i.alpha3Code}</li>
+                                    <li><b>capital : </b>{i.capital}</li>
+                                    <li><b>area : </b>{i.area}</li>
+                                    <li><b>borders : </b>{ i.borders.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
+                                    <li><b>altSpellings : </b>{ i.altSpellings.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
+                                    <li><b>callingCodes : </b>{ i.callingCodes.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>   
+                                    <li><b>cioc : </b>{i.cioc} </li>   
+                                    <li><b>demonym : </b>{i.demonym} </li>
+                                    <li><b>languages : </b>{ i.languages.map((j,n) => <Fragment key={n}> {j.name}, </Fragment>)} </li> 
+                                    <li><b>numericCode : </b>{i.numericCode} </li>                                 
                                   </Col>
                                   <Col xs={6} style={{textAlign:'left', display:'grid'}}>
-                                    <li>subregion : {i.subregion} </li>
-                                    <li>timezones : { i.timezones.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
-                                    <li>topLevelDomain : { i.topLevelDomain.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
-                                    <li>population : {i.population} </li> 
-                                    <li>nativeName : {i.nativeName} </li>  
-                                    <li>gini : {i.gini} </li>
-                                    <li>latlng : {i.latlng} </li>
-                                    <li>currencies : { i.currencies.map((j,n) => <Fragment key={n}> {j.code}, </Fragment>)} </li> 
-                                    <li>latlng : { i.latlng.map((j,n) => <Fragment key={n}> {j}, </Fragment>)} </li> 
+                                    <li><b>subregion : </b>{i.subregion} </li>
+                                    <li><b>timezones : </b>{ i.timezones.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
+                                    <li><b>topLevelDomain : </b>{ i.topLevelDomain.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
+                                    <li><b>population : </b>{i.population} </li> 
+                                    <li><b>nativeName : </b>{i.nativeName} </li>  
+                                    <li><b>gini : </b>{i.gini} </li>
+                                    <li><b>latlng : </b>{i.latlng} </li>
+                                    <li><b>currencies : </b>{ i.currencies.map((j,n) => <Fragment key={n}> {j.code}, </Fragment>)} </li> 
+                                    <li><b>latlng : </b>{ i.latlng.map((j,n) => <Fragment key={n}> {j}, </Fragment>)} </li>
+                                    <li><b>regionalBlocs : </b>{ i.regionalBlocs.map((j,n) => <Fragment key={n}> {j.acronym}, </Fragment>)} </li> 
+ 
                                   </Col>
                                 </Row>
                               </Container>
