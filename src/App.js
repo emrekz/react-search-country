@@ -16,9 +16,9 @@ import { Button,
   Alert,
   Spinner,
   Card,
-  Badge
+  Badge,
+  Modal
 } from 'react-bootstrap';
-
 
 function App() {
   const [jsonData, setJsonData] = useState([]);
@@ -30,7 +30,14 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchStatus, setSearchStatus] = useState(false);
   const [detailsBadge, setDetailsBadge] = useState(false);
-  
+  const [modalShow, setModalShow] = useState(false);
+  const [errorCode, setErrorCode] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const modalHandleClose = () => {setModalShow(false)}
+
+  const modalHandleShow = () => {setModalShow(true)}
+
   useEffect(() => {
     setSearchStatus(true);
     axios.get('https://restcountries.eu/rest/v2/all')
@@ -39,7 +46,15 @@ function App() {
         setSearchResults(response.data);
         setNumberSearchResult(response.data.length);
         setSearchStatus(false);
-      });
+      })
+      .catch(err => {
+        setErrorCode(err.response.data.status);
+        setErrorMessage(err.response.data.message);
+        setSearchResults([]);
+        setNumberSearchResult(0);
+        setSearchStatus(false);
+        modalHandleShow();
+      })
   }, []);
 
   useEffect(() => {
@@ -55,7 +70,6 @@ function App() {
     setNumberSearchResult(result.length);
   }, [filterState])
 
-
   let counter = 0;
   let result = [];
   let searchTimer;
@@ -65,14 +79,38 @@ function App() {
       setSearchStatus(true);
       setSearchTerm(e.target.value);
       result = [];
-      if(filterState !== 'all'){
-        jsonData.forEach((i) => {
+      if(filterState === 'region'){
+        jsonData.forEach((i, ind) => {
           if(i[filterState].indexOf(e.target.value) !== -1){
             result.push(i);
             setSearchStatus(false);
-          }else{setSearchStatus(false);}
+          }
         });
-      } else {
+        if(result.length < 1) {
+          setSearchStatus(false);
+          modalHandleShow();
+        }
+      } 
+      else if(filterState === 'name' || filterState === 'capital') {
+        axios.get('https://restcountries.eu/rest/v2/'+filterState+'/'+e.target.value)
+          .then(res => {
+            result = res.data;
+            setSearchResults(result);
+            setNumberSearchResult(result.length);
+            setSearchStatus(false);
+          })
+          .catch(err => {
+            result = [];
+            setErrorCode(err.response.data.status);
+            setErrorMessage(err.response.data.message);
+            setSearchResults(result);
+            setNumberSearchResult(result.length);
+            setSearchStatus(false);
+            modalHandleShow();
+          })
+      }
+      
+      else {
         setDetailsBadge(true);
         jsonData.forEach((x,tm,arr) => {
           setTimeout(() => {
@@ -86,7 +124,6 @@ function App() {
                     resultPush(String(x[f1][f2]),String(e.target.value),x,String(f1),tm) :
                     Object.keys(x[f1][f2]).forEach((f3) => {
                       ((typeof x[f1][f2][f3] === 'string' || typeof x[f1][f2][f3] === 'number' || x[f1][f2][f3] === null  || x[f1][f2][f3] === undefined)) ?
-                        //console.log('key: '+f1+'>'+f2+'>'+f3+' , value: '+ x[f1][f2][f3]) :
                         resultPush(String(x[f1][f2][f3]),String(e.target.value),x,String(f1),tm) :
                         Object.keys(x[f1][f2][f3]).forEach((f4) => {
                           ((typeof x[f1][f2][f3][f4] === 'string' || typeof x[f1][f2][f3][f4] === 'number' || x[f1][f2][f3][f4] === null  || x[f1][f2][f3][f4] === undefined)) ?
@@ -101,17 +138,19 @@ function App() {
               setNumberSearchResult(result.length);
               counter = 0; 
               setSearchStatus(false);
+              if(result.length === 0){
+                modalHandleShow();
+              }
             }
             if(myArr.length > -1){
               x['details'] = myArr;
             }
-          
           }, 1)
         })
       }
       setSearchResults(result);
       setNumberSearchResult(result.length);
-    },600)
+    },300)
   };
   
   let myArr = [];
@@ -132,7 +171,6 @@ function App() {
           }
         }
       }
-      
     }
   }
 
@@ -156,7 +194,7 @@ function App() {
       <header className="App-header">
         <Container style={{minHeight:'1000px', marginTop:'10px'}}>
           <Row style={{marginBottom: '-5%'}}>
-            <Col xs="5"><img src={logo} style={{height:'55%', width:'auto'}}/></Col>
+            <Col xs="5"><img src={logo} style={{height:'55%', width:'auto'}} alt='Country Search'/></Col>
             <Col xs="7"></Col>
           </Row>
           <Row className="justify-content-md-center">
@@ -210,11 +248,9 @@ function App() {
                   {searchResults.map((i, ind) =>{
                     return(
                       <Fragment key={i.name}>
-                        <tr key={i.numericCode} 
-                          onClick = {(e) => detail(e)}
-                        >
+                        <tr key={i.numericCode} onClick = {(e) => detail(e)}>
                           <th title='Flag'>
-                            <img src={i.flag} style={{width: '3vw', height: 'auto'}} alt={i.name} />
+                            <img src={i.flag} style={{width: '5vw', height: 'auto'}} alt={i.name} />
                           </th>
                           <th title='Name'>{i.name}</th>
                           <th title='Capital'>{i.capital}</th>
@@ -249,26 +285,26 @@ function App() {
                                           <li><b>alpha2Code : </b>{i.alpha2Code}</li>
                                           <li><b>alpha3Code : </b>{i.alpha3Code}</li>
                                           <li><b>capital : </b>{i.capital}</li>
-                                          <li><b>area : </b>{i.area}</li>
-                                          <li><b>borders : </b>{ i.borders.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
-                                          <li><b>altSpellings : </b>{ i.altSpellings.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
-                                          <li><b>callingCodes : </b>{ i.callingCodes.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>   
+                                          <li><b>area : </b>{i.area} km²</li>
+                                          <li><b>borders : </b>{ i.borders.map(j => <Fragment key={j}> {j} , </Fragment>)} </li>
+                                          <li><b>altSpellings : </b>{ i.altSpellings.map(j => <Fragment key={j}> {j} , </Fragment>)} </li> 
+                                          <li><b>callingCodes : </b>{ i.callingCodes.map(j => <Fragment key={j}> {j} , </Fragment>)} </li>   
                                           <li><b>cioc : </b>{i.cioc} </li>   
                                           <li><b>demonym : </b>{i.demonym} </li>
-                                          <li><b>languages : </b>{ i.languages.map((j,n) => <Fragment key={n}> {j.name}, </Fragment>)} </li> 
+                                          <li><b>languages : </b>{ i.languages.map((j,n) => <Fragment key={n}> {j.name} , </Fragment>)} </li> 
                                           <li><b>numericCode : </b>{i.numericCode} </li>                                 
                                         </Col>
                                         <Col xs={6} style={{textAlign:'left', display:'grid', fontSize: '12px'}}>
                                           <li><b>subregion : </b>{i.subregion} </li>
-                                          <li><b>timezones : </b>{ i.timezones.map(j => <Fragment key={j}> {j}, </Fragment>)} </li>
-                                          <li><b>topLevelDomain : </b>{ i.topLevelDomain.map(j => <Fragment key={j}> {j}, </Fragment>)} </li> 
+                                          <li><b>timezones : </b>{ i.timezones.map(j => <Fragment key={j}> {j} , </Fragment>)} </li>
+                                          <li><b>topLevelDomain : </b>{ i.topLevelDomain.map(j => <Fragment key={j}> {j} , </Fragment>)} </li> 
                                           <li><b>population : </b>{i.population} </li> 
                                           <li><b>nativeName : </b>{i.nativeName} </li>  
                                           <li><b>gini : </b>{i.gini} </li>
                                           <li><b>latlng : </b>{i.latlng} </li>
-                                          <li><b>currencies : </b>{ i.currencies.map((j,n) => <Fragment key={n}> {j.code}, </Fragment>)} </li> 
-                                          <li><b>latlng : </b>{ i.latlng.map((j,n) => <Fragment key={n}> {j}, </Fragment>)} </li>
-                                          <li><b>regionalBlocs : </b>{ i.regionalBlocs.map((j,n) => <Fragment key={n}> {j.acronym}, </Fragment>)} </li> 
+                                          <li><b>currencies : </b>{ i.currencies.map((j,n) => <Fragment key={n}> {j.code} , </Fragment>)} </li> 
+                                          <li><b>latlng : </b>{ i.latlng.map((j,n) => <Fragment key={n}> {j} , </Fragment>)} </li>
+                                          <li><b>regionalBlocs : </b>{ i.regionalBlocs.map((j,n) => <Fragment key={n}> {j.acronym} , </Fragment>)} </li> 
                                         </Col>
                                         </Row>
                                     </Card.Body>
@@ -276,7 +312,6 @@ function App() {
                                   </Col>
                                 </Row>
                               </Container>
-                              
                           </td>
                         </tr>
                       </Fragment>
@@ -288,6 +323,19 @@ function App() {
             <Col></Col>
           </Row>
         </Container>
+
+        <Modal show={modalShow} onHide={modalHandleClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Error</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>{errorCode} {errorMessage}</Modal.Body>
+          <Modal.Body>not found : <b>{searchTerm}</b></Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={modalHandleClose}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </header>
     </div>
   );
