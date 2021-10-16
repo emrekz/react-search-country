@@ -40,7 +40,7 @@ function App() {
 
   useEffect(() => {
     setSearchStatus(true);
-    axios.get('https://restcountries.eu/rest/v2/all')
+    axios.get('https://restcountries.com/v2/all')
       .then(response => {
         setJsonData(response.data);
         setSearchResults(response.data);
@@ -61,7 +61,7 @@ function App() {
     result = [];
     if(filterState !== 'all'){
       jsonData.forEach((i) => {
-        if(i[filterState].indexOf('') !== -1){
+        if(i[filterState] !== undefined && i[filterState].indexOf('') !== -1){
           result.push(i);
         }
       })
@@ -92,15 +92,26 @@ function App() {
         }
       } 
       else if(filterState === 'name' || filterState === 'capital') {
-        axios.get('https://restcountries.eu/rest/v2/'+filterState+'/'+e.target.value)
+        axios.get('https://restcountries.com/v2/'+filterState+'/'+e.target.value)
           .then(res => {
             result = res.data;
-            setSearchResults(result);
-            setNumberSearchResult(result.length);
-            setSearchStatus(false);
+            if(result.status !== undefined && result.status === 404){
+              setErrorCode(result.status);
+              setErrorMessage(result.message);
+              setSearchResults([]);
+              setNumberSearchResult(0);
+              setSearchStatus(false);
+              modalHandleShow();
+            } else {
+              setSearchResults(result);
+              setNumberSearchResult(result.length);
+              setSearchStatus(false);
+            }
+            
           })
           .catch(err => {
             result = [];
+            console.log(err.response)
             setErrorCode(err.response.data.status);
             setErrorMessage(err.response.data.message);
             setSearchResults(result);
@@ -139,6 +150,8 @@ function App() {
               counter = 0; 
               setSearchStatus(false);
               if(result.length === 0){
+                setErrorCode(404);
+                setErrorMessage('Not Found');
                 modalHandleShow();
               }
             }
@@ -201,7 +214,7 @@ function App() {
             <Col></Col>
             <Col xs="10">
               <Alert variant="primary">
-                { searchStatus === false ? <>Country count : <Badge variant="primary">{numberSearchResult}</Badge></> : <><Spinner animation="border" variant="primary"></Spinner><span style={{fontSize:'25px', textAlign:'center'}}> Searching...</span></> }
+                { searchStatus === false ? <>Count of found countries : <Badge variant="primary">{numberSearchResult}</Badge></> : <><Spinner animation="border" variant="primary"></Spinner><span style={{fontSize:'25px', textAlign:'center'}}> Searching...</span></> }
               </Alert>
               <Row className="justify-content-md-center">
                 <Col xs="10">
@@ -245,7 +258,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {searchResults.map((i, ind) =>{
+                  {searchResults !== [] ? searchResults.map((i, ind) =>{
                     return(
                       <Fragment key={i.name}>
                         <tr key={i.numericCode} onClick = {(e) => detail(e)}>
@@ -286,25 +299,25 @@ function App() {
                                           <li><b>alpha3Code : </b>{i.alpha3Code}</li>
                                           <li><b>capital : </b>{i.capital}</li>
                                           <li><b>area : </b>{i.area} km²</li>
-                                          <li><b>borders : </b>{ i.borders.map(j => <Fragment key={j}> {j} , </Fragment>)} </li>
-                                          <li><b>altSpellings : </b>{ i.altSpellings.map(j => <Fragment key={j}> {j} , </Fragment>)} </li> 
-                                          <li><b>callingCodes : </b>{ i.callingCodes.map(j => <Fragment key={j}> {j} , </Fragment>)} </li>   
+                                          <li><b>borders : </b>{ i.borders !== undefined ? i.borders.map(j => <Fragment key={j}> {j} , </Fragment>) : null } </li>
+                                          <li><b>altSpellings : </b>{ i.altSpellings !== undefined ? i.altSpellings.map(j => <Fragment key={j}> {j} , </Fragment>) : null } </li> 
+                                          <li><b>callingCodes : </b>{ i.callingCodes !== undefined ? i.callingCodes.map(j => <Fragment key={j}> {j} , </Fragment>) : null } </li>   
                                           <li><b>cioc : </b>{i.cioc} </li>   
                                           <li><b>demonym : </b>{i.demonym} </li>
-                                          <li><b>languages : </b>{ i.languages.map((j,n) => <Fragment key={n}> {j.name} , </Fragment>)} </li> 
+                                          <li><b>languages : </b>{ i.languages !== undefined ? i.languages.map((j,n) => <Fragment key={n}> {j.name} , </Fragment>) : null } </li> 
                                           <li><b>numericCode : </b>{i.numericCode} </li>                                 
                                         </Col>
                                         <Col xs={6} style={{textAlign:'left', display:'grid', fontSize: '12px'}}>
                                           <li><b>subregion : </b>{i.subregion} </li>
-                                          <li><b>timezones : </b>{ i.timezones.map(j => <Fragment key={j}> {j} , </Fragment>)} </li>
-                                          <li><b>topLevelDomain : </b>{ i.topLevelDomain.map(j => <Fragment key={j}> {j} , </Fragment>)} </li> 
+                                          <li><b>timezones : </b>{ i.timezones !== undefined ? i.timezones.map(j => <Fragment key={j}> {j} , </Fragment>) : null} </li>
+                                          <li><b>topLevelDomain : </b>{ i.topLevelDomain !== undefined ? i.topLevelDomain.map(j => <Fragment key={j}> {j} , </Fragment>) : null } </li> 
                                           <li><b>population : </b>{i.population} </li> 
                                           <li><b>nativeName : </b>{i.nativeName} </li>  
                                           <li><b>gini : </b>{i.gini} </li>
                                           <li><b>latlng : </b>{i.latlng} </li>
-                                          <li><b>currencies : </b>{ i.currencies.map((j,n) => <Fragment key={n}> {j.code} , </Fragment>)} </li> 
-                                          <li><b>latlng : </b>{ i.latlng.map((j,n) => <Fragment key={n}> {j} , </Fragment>)} </li>
-                                          <li><b>regionalBlocs : </b>{ i.regionalBlocs.map((j,n) => <Fragment key={n}> {j.acronym} , </Fragment>)} </li> 
+                                          <li><b>currencies : </b>{ i.currencies !== undefined ? i.currencies.map((j,n) => <Fragment key={n}> {j.code} , </Fragment>) : null } </li> 
+                                          <li><b>latlng : </b>{ i.latlng !== undefined ? i.latlng.map((j,n) => <Fragment key={n}> {j} , </Fragment>) : null } </li>
+                                          <li><b>regionalBlocs : </b>{ i.regionalBlocs !== undefined ? i.regionalBlocs.map((j,n) => <Fragment key={n}> {j.acronym} , </Fragment>) : null } </li> 
                                         </Col>
                                         </Row>
                                     </Card.Body>
@@ -316,7 +329,7 @@ function App() {
                         </tr>
                       </Fragment>
                     )
-                  })}
+                  }): null}
                 </tbody>
               </Table>
             </Col>
@@ -328,10 +341,10 @@ function App() {
           <Modal.Header closeButton>
             <Modal.Title>Error</Modal.Title>
           </Modal.Header>
-          <Modal.Body>{errorCode} {errorMessage}</Modal.Body>
-          <Modal.Body>not found : <b>{searchTerm}</b></Modal.Body>
+          <Modal.Body><b>{errorCode} - {errorMessage}</b></Modal.Body>
+          <Modal.Body><b>'{searchTerm}'</b> was not found.</Modal.Body>
           <Modal.Footer>
-            <Button variant="primary" onClick={modalHandleClose}>
+            <Button variant="danger" onClick={modalHandleClose}>
               Close
             </Button>
           </Modal.Footer>

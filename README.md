@@ -1,4 +1,4 @@
-# 🌎 Search Country React App
+# Search Country React App
 ![javascript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![react](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![bootstrap](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)
@@ -11,7 +11,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
-### `npm install` ✔️
-### `npm start` ✔️
+### `npm install` 
+### `npm start` 
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
